@@ -14,29 +14,49 @@ prompt_user "Enter the desired subdomain for n8n (e.g., n8n)" SUBDOMAIN
 prompt_user "Enter your email for SSL certificate" SSL_EMAIL
 prompt_user "Enter your desired timezone (e.g., Europe/Berlin)" GENERIC_TIMEZONE
 
-# Install Docker
-sudo apt-get update
-sudo apt-get install -y ca-certificates curl gnupg
+# Install Docker if not already installed
+if ! command -v docker &> /dev/null; then
+    echo "Docker not found. Installing Docker..."
+    sudo apt-get update
+    sudo apt-get install -y ca-certificates curl gnupg
 
-# Add Docker's official GPG key
-sudo install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-sudo chmod a+r /etc/apt/keyrings/docker.gpg
+    # Add Docker's official GPG key
+    sudo install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    sudo chmod a+r /etc/apt/keyrings/docker.gpg
 
-# Set up the Docker repository
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    # Set up the Docker repository
+    echo \
+      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+      $(lsb_release -cs) stable" | \
+      sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-# Update the package database with Docker packages
-sudo apt-get update
+    # Update the package database with Docker packages
+    sudo apt-get update
 
-# Install Docker
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+    # Install Docker
+    sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-# Add current user to docker group
-sudo usermod -aG docker ${USER}
+    # Add current user to docker group
+    sudo usermod -aG docker ${USER}
+else
+    echo "Docker is already installed."
+fi
+
+# Ensure Docker daemon is running
+echo "Ensuring Docker daemon is running..."
+if ! sudo systemctl is-active --quiet docker; then
+    echo "Starting Docker daemon..."
+    sudo systemctl start docker
+fi
+
+# Wait for Docker daemon to be ready
+echo "Waiting for Docker daemon to be ready..."
+while ! sudo docker info >/dev/null 2>&1; do
+    echo "Waiting for Docker daemon..."
+    sleep 1
+done
+echo "Docker daemon is ready."
 
 # Create Docker Compose file
 cat << EOF > docker-compose.yml
