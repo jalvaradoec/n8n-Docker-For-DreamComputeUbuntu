@@ -5,6 +5,12 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
+# Creat the folder maping requird for docker container to boot 
+cd ~/
+mkdir ~/.n8n
+sudo chown -R $USER:$USER ~/.n8n
+chmod -R 755 ~/.n8n
+
 # Prompt for domain name
 read -p "Enter your domain name (e.g., example.com): " DOMAIN
 
@@ -63,6 +69,7 @@ docker run -d \
   -e N8N_PORT="443" \
   -e N8N_PROTOCOL="https" \
   -v ~/.n8n:/home/node/.n8n \
+  --user "$(id -u):$(id -g)" \
   n8nio/n8n
 
 echo "Setup complete! Your n8n instance should now be accessible at https://$DOMAIN"
