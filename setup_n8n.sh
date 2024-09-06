@@ -16,19 +16,27 @@ prompt_user "Enter your desired timezone (e.g., Europe/Berlin)" GENERIC_TIMEZONE
 
 # Install Docker
 sudo apt-get update
-sudo apt-get remove -y docker docker-engine docker.io containerd runc
-sudo apt-get install -y ca-certificates curl gnupg lsb-release
-sudo mkdir -p /etc/apt/keyrings
+sudo apt-get install -y ca-certificates curl gnupg
+
+# Add Docker's official GPG key
+sudo install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+# Set up the Docker repository
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Update the package database with Docker packages
 sudo apt-get update
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+
+# Install Docker
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 # Add current user to docker group
 sudo usermod -aG docker ${USER}
-
-# Install Docker Compose
-sudo apt-get install -y docker-compose-plugin
 
 # Create Docker Compose file
 cat << EOF > docker-compose.yml
