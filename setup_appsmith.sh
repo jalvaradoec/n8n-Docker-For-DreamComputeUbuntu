@@ -44,6 +44,12 @@ while ! sudo docker info >/dev/null 2>&1; do
 done
 echo "Docker daemon is ready."
 
+# Check if Docker Compose is available
+if ! docker compose version &> /dev/null; then
+    echo "Docker Compose not found. Please ensure you have Docker Compose installed or updated."
+    exit 1
+fi
+
 # Create appsmith directory
 mkdir -p appsmith
 cd appsmith
@@ -99,7 +105,7 @@ EOF
 mkdir -p stacks letsencrypt
 
 # Start the Docker containers
-sudo docker-compose up -d
+sudo docker compose up -d
 
 echo "Appsmith setup complete. It should now be accessible at https://${SUBDOMAIN}.${DOMAIN_NAME}"
 echo "Please allow a few minutes for the server to fully start up and for SSL certificates to be issued."
